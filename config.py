@@ -1,3 +1,5 @@
+from enum import StrEnum
+
 from pydantic import BaseModel, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -21,8 +23,13 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         env_nested_delimiter="__",
-        extra="ignore"
+        extra="ignore",
     )
 
 
 settings = Settings()
+
+
+class GasRooms(StrEnum):
+    PUMP = "Насосная"
+    PROBE = "Пробная"

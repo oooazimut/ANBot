@@ -1,14 +1,17 @@
 from aiogram import Router
+from aiogram.enums import ContentType
 from aiogram.filters import CommandStart
 from aiogram.types import Message
 from aiogram_dialog import Dialog, DialogManager, StartMode, Window
 from aiogram_dialog.widgets.input import TextInput
-from aiogram_dialog.widgets.kbd import Start, SwitchTo
-from aiogram_dialog.widgets.text import Const
+from aiogram_dialog.widgets.kbd import Back, Group, Next, NumberedPager, StubScroll
+from aiogram_dialog.widgets.media import StaticMedia
+from aiogram_dialog.widgets.text import Const, Format
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.models import User
-from dialogs.handlers import right_passwd, wrong_passwd, check_passwd
+from dialogs import getters
+from dialogs.handlers import check_passwd, right_passwd, to_gas_rooms, wrong_passwd
 from dialogs.states import AuthenSG, MainSG
 
 start_router = Router()
@@ -32,16 +35,25 @@ authen_d = Dialog(
             on_success=right_passwd,
             on_error=wrong_passwd,
         ),
-        state=AuthenSG.passwd
+        state=AuthenSG.passwd,
     )
 )
 
 main_d = Dialog(
     Window(
-        SwitchTo(Const("Датчики газа")),
-        SwitchTo(Const("УЗА, насосы")),
-        SwitchTo(""),
-        state=,
+        Next(Const("Датчики газа"), on_click=to_gas_rooms),
+        # SwitchTo(Const("УЗА, насосы")),
+        # SwitchTo(""),
+        state=MainSG.menu,
     ),
-
+    Window(
+        Const("Текущие показания датчиков газа:"),
+        Format("{path}"),
+        StaticMedia(path=Format("{path}"), type=ContentType.PHOTO),
+        StubScroll(id="gs_rooms_scroll", pages="pages"),
+        Group(NumberedPager(scroll="gs_rooms_scroll"), width=8),
+        Back(Const("Назад")),
+        state=MainSG.gas_sensors,
+        getter=getters.gas_rooms_getter,
+    ),
 )
