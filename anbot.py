@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
 from config import settings
 from custom.media_storage import MediaIdStorage
+from db.repo import save_data
 from dialogs.dialogs import start_router, authen_d, main_d
 from dialogs.states import MainSG
 from middlewares import DbSessionMiddleware
@@ -34,6 +35,9 @@ async def main():
         default=DefaultBotProperties(parse_mode="HTML"),
     )
     scheduler = AsyncIOScheduler()
+    scheduler.add_job(
+        save_data, trigger="interval", seconds=5, id="polling", args=[db_pool]
+    )
     scheduler.start()
     storage = RedisStorage(
         Redis(), key_builder=DefaultKeyBuilder(with_bot_id=True, with_destiny=True)

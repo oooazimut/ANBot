@@ -18,6 +18,9 @@ class Base(AsyncAttrs, DeclarativeBase):
         )
         return f"<{self.__class__.__name__}({cols}) > "
 
+    def as_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
 
 class User(Base):
     __tablename__ = "users"
@@ -30,9 +33,10 @@ class Pump(Base):
     __tablename__ = "pumps"
 
     pressure: Mapped[float]
-    temperature: Mapped[float]
+    temperature: Mapped[float] = mapped_column(nullable=True)
     work: Mapped[int]
     enable: Mapped[bool]
+    permission: Mapped[bool]
     timestamp: Mapped[timestamp]
 
 
