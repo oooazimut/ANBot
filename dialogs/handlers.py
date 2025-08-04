@@ -32,5 +32,5 @@ async def wrong_passwd(msg: Message, *args, **kwargs):
 async def to_gas_rooms(clb: CallbackQuery, button, manager: DialogManager):
     session: AsyncSession = manager.middleware_data["session"]
     stmt = select(GasSensor).where(func.date(GasSensor.timestamp) == date.today())
-    sensors = await session.scalars(stmt)
-    sensors = sensors.all()
+    sensors = (await session.scalars(stmt)).all()
+    print(sensors)

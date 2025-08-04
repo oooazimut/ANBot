@@ -41,6 +41,7 @@ authen_d = Dialog(
 
 main_d = Dialog(
     Window(
+        Const("Главное меню"),
         Next(Const("Датчики газа"), on_click=to_gas_rooms),
         # SwitchTo(Const("УЗА, насосы")),
         # SwitchTo(""),
@@ -49,9 +50,9 @@ main_d = Dialog(
     Window(
         Const("Текущие показания датчиков газа:"),
         Format("{path}"),
-        StaticMedia(path=Format("{path}"), type=ContentType.PHOTO),
-        StubScroll(id="gs_rooms_scroll", pages="pages"),
-        Group(NumberedPager(scroll="gs_rooms_scroll"), width=8),
+        # StaticMedia(path=Format("{path}"), type=ContentType.PHOTO),
+        # StubScroll(id="gs_rooms_scroll", pages="pages"),
+        # Group(NumberedPager(scroll="gs_rooms_scroll"), width=8),
         Back(Const("Назад")),
         state=MainSG.gas_sensors,
         getter=getters.gas_rooms_getter,

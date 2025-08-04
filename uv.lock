@@ -136,6 +136,7 @@ dependencies = [
     { name = "babel" },
     { name = "matplotlib" },
     { name = "pydantic-settings" },
+    { name = "pymodbus" },
     { name = "redis" },
     { name = "sqlalchemy" },
 ]
@@ -150,6 +151,7 @@ requires-dist = [
     { name = "babel", specifier = ">=2.17.0" },
     { name = "matplotlib", specifier = ">=3.10.3" },
     { name = "pydantic-settings", specifier = ">=2.10.1" },
+    { name = "pymodbus", specifier = ">=3.10.0" },
     { name = "redis", specifier = ">=6.2.0" },
     { name = "sqlalchemy", specifier = ">=2.0.41" },
 ]
@@ -707,6 +709,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/68/85/1ea668bbab3c50071ca613c6ab30047fb36ab0da1b92fa8f17bbc38fd36c/pydantic_settings-2.10.1.tar.gz", hash = "sha256:06f0062169818d0f5524420a360d632d5857b83cffd4d42fe29597807a1614ee", size = 172583, upload-time = "2025-06-24T13:26:46.841Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/58/f0/427018098906416f580e3cf1366d3b1abfb408a0652e9f31600c24a1903c/pydantic_settings-2.10.1-py3-none-any.whl", hash = "sha256:a60952460b99cf661dc25c29c0ef171721f98bfcb52ef8d9ea4c943d7c8cc796", size = 45235, upload-time = "2025-06-24T13:26:45.485Z" },
+]
+
+[[package]]
+name = "pymodbus"
+version = "3.10.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/78/72/7216de673d0e0a2b22f0be98a84f851430ae176d8a82c0b15d3d30bc3854/pymodbus-3.10.0.tar.gz", hash = "sha256:5b7ce71f9da2fabd1f8484de564a7e2c56085e94e3d4ee2a0fbc14c59dfa9da7", size = 161033, upload-time = "2025-07-27T21:15:35.759Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d9/94/3d063134f944f8a8089963c15449d4453bcd65b8982bdf08c89d32f89210/pymodbus-3.10.0-py3-none-any.whl", hash = "sha256:146f7cc9cafd9edcaf427f3a822852395961dd2ba0bfc0069d18c2a94607304a", size = 163457, upload-time = "2025-07-27T21:15:33.843Z" },
 ]
 
 [[package]]
