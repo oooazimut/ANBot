@@ -1,8 +1,9 @@
 import logging
-from typing import List
+from typing import Sequence
 
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import aliased, sessionmaker
 
 from db.models import GasSensor, Pump
 from service.modbus import poll_registers
@@ -27,5 +28,16 @@ async def save_data(db_pool: sessionmaker):
             logger.error(f"Ошибка сохранения данных: {e}")
 
 
-def get_last_gassensors(session: AsyncSession) -> List[GasSensor]:
-    pass
+async def get_last_gassensors(session: AsyncSession) -> Sequence[GasSensor]:
+    substmt = (
+        select(GasSensor.name, func.max(GasSensor.timestamp).label("max_ts"))
+        .group_by(GasSensor.name)
+        .subquery()
+    )
+    GS = aliased(GasSensor)
+
+    stmt = select(GS).join(
+        substmt, (GS.name == substmt.c.name) & (GS.timestamp == substmt.c.max_ts)
+    )
+
+    return (await session.scalars(stmt)).all()

@@ -13,6 +13,8 @@ logger = logging.getLogger(__name__)
 REG_START = 16384
 REG_LEN = 41
 
+Uzas, Shifters = [], []
+
 
 def convert_to_bin(num: int, width: int) -> list[int]:
     return [int(b) for b in f"{num:0{width}b}"[::-1]]
@@ -58,6 +60,10 @@ def process_data(client: ModbusBaseClient, data: List):
             convert_to_bin(data[34], 5),
         )
     ]
+
+    Uzas = convert_to_bin(data[32], 6)
+    Shifters = data[35:]
+
     return {"pumps": pumps, "sensors": sensors}
 
 

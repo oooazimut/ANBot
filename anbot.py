@@ -28,6 +28,7 @@ async def main():
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s"
     )
+    logging.getLogger("apscheduler").setLevel(logging.WARNING)
     engine = create_async_engine(settings.sqlite_async_dsn, echo=False)
     db_pool = async_sessionmaker(engine, expire_on_commit=False)
     bot = Bot(
@@ -36,7 +37,12 @@ async def main():
     )
     scheduler = AsyncIOScheduler()
     scheduler.add_job(
-        save_data, trigger="interval", seconds=5, id="polling", args=[db_pool]
+        save_data,
+        trigger="interval",
+        seconds=5,
+        id="polling",
+        args=[db_pool],
+        replace_existing=True,
     )
     scheduler.start()
     storage = RedisStorage(

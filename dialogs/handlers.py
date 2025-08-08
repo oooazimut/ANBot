@@ -1,13 +1,14 @@
-from datetime import date
+from pathlib import Path
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import DialogManager, StartMode
 from aiogram_dialog.widgets.input import ManagedTextInput
-from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from config import settings
-from db.models import GasSensor, User
+from db.models import User
+from db.repo import get_last_gassensors
 from dialogs.states import MainSG
+from service.draw import draw_gassensors, draw_uzas_and_pumps
 
 
 def check_passwd(passwd: str) -> str:
@@ -31,6 +32,12 @@ async def wrong_passwd(msg: Message, *args, **kwargs):
 
 async def to_gas_rooms(clb: CallbackQuery, button, manager: DialogManager):
     session: AsyncSession = manager.middleware_data["session"]
-    stmt = select(GasSensor).where(func.date(GasSensor.timestamp) == date.today())
-    sensors = (await session.scalars(stmt)).all()
-    print(sensors)
+    sensors = await get_last_gassensors(session)
+    draw_gassensors(sensors)
+    await manager.switch_to(state=MainSG.gas_sensors)
+
+
+async def to_uzas_and_pumps(clb: CallbackQuery, button, manager: DialogManager):
+    manager.dialog_data["path"] = str(Path("images/uza&pumps.png")
+    draw_uzas_and_pumps(manager.dialog_data["path"])
+    await manager.switch_to(state=MainSG.pumps)
