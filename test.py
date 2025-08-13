@@ -20,18 +20,5 @@
 #     asyncio.run(main())
 
 
-from config import GS_PROBE, GS_PUMP, GasRooms
-
-
-paths = [f"/images/{i}.png" for i in GasRooms]
-
-points = dict(
-    zip(
-        GS_PUMP + GS_PROBE,
-        [(550, 280), (930, 280), (60, 530), (930, 1170), (630, 290), (160, 700)],
-    )
-)
-
-[print(type(i)) for i in paths]
-print(paths)
-print(points)
+x = "sadfsfsafumpsdfsdf"
+print("pump" in x)

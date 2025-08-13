@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from typing import List
+from typing import Any, List
 
 from pymodbus import ModbusException
 from pymodbus.client import AsyncModbusTcpClient, ModbusBaseClient
@@ -20,7 +20,7 @@ def convert_to_bin(num: int, width: int) -> list[int]:
     return [int(b) for b in f"{num:0{width}b}"[::-1]]
 
 
-def words_to_floats(client: ModbusBaseClient, words: list[int]):
+def words_to_floats(client: ModbusBaseClient, words: list[int]) -> List[float | Any]:
     return [
         client.convert_from_registers(
             words[i : i + 2],
@@ -32,6 +32,7 @@ def words_to_floats(client: ModbusBaseClient, words: list[int]):
 
 
 def process_data(client: ModbusBaseClient, data: List):
+    global Uzas, Shifters
     ts = datetime.now().replace(microsecond=0)
 
     sensors = [
@@ -46,11 +47,11 @@ def process_data(client: ModbusBaseClient, data: List):
     pumps = [
         {
             "name": n,
-            "pressure": p,
+            "pressure": round(p, 1),
             "enable": c,
             "timestamp": ts,
             "permission": perm,
-            "work": w,
+            "work": round(w / 60),
         }
         for n, p, w, perm, c in zip(
             PUMPS_IDS,

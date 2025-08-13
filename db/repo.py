@@ -41,3 +41,17 @@ async def get_last_gassensors(session: AsyncSession) -> Sequence[GasSensor]:
     )
 
     return (await session.scalars(stmt)).all()
+
+
+async def get_last_pumps(session: AsyncSession) -> Sequence[Pump]:
+    subq = (
+        select(Pump.name, func.max(Pump.timestamp).label("max_ts"))
+        .group_by(Pump.name)
+        .subquery()
+    )
+    P = aliased(Pump)
+    stmt = select(P).join(
+        subq, (P.name == subq.c.name) & (P.timestamp == subq.c.max_ts)
+    )
+
+    return (await session.scalars(stmt)).all()

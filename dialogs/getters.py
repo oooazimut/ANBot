@@ -16,3 +16,11 @@ async def gas_rooms_getter(dialog_manager: DialogManager, **kwargs):
         "path": path,
         "room": room,
     }
+
+
+async def archive_getter(dialog_manager: DialogManager, **kwargs):
+    return {
+        "pages": None,
+        "path": None,
+        "title": None,
+    }
