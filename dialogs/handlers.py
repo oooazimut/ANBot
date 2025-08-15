@@ -1,17 +1,20 @@
 from datetime import date
 from pathlib import Path
+from typing import Callable, Sequence, Type, TypeVar
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import DialogManager, StartMode
 from aiogram_dialog.widgets.input import ManagedTextInput
 from aiogram_dialog.widgets.kbd import Button
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql.expression import Function
 
 from config import settings
 from db.models import GasSensor, Pump, User
 from db.repo import get_last_gassensors, get_last_pumps
 from dialogs.states import MainSG
 from service.draw import draw_gassensors, draw_uzas_and_pumps
+from service.plot import plot_gs, plot_pumps
 
 
 def check_passwd(passwd: str) -> str:
@@ -50,20 +53,31 @@ async def to_uzas_and_pumps(clb: CallbackQuery, button, manager: DialogManager):
 
 async def to_archive(clb, button: Button, manager: DialogManager):
     manager.dialog_data["archive"] = button.widget_id
-    print(button.widget_id)
     await manager.switch_to(MainSG.calendar)
 
 
-async def on_date(event, widget, manager: DialogManager, date: date):
+async def on_date(event: CallbackQuery, widget, manager: DialogManager, date: date):
+    await manager.find("archive_scroll").set_page(0)
+
+    async def get_and_plot(
+        session: AsyncSession, m: Type, date, plot_f: Callable
+    ) -> bool:
+        r = (
+            await session.scalars(select(m).where(func.date(m.timestamp) == date))
+        ).all()
+        if not r:
+            return False
+        plot_f(r)
+        return True
+
     session: AsyncSession = manager.middleware_data["session"]
-    if "pump" in manager.dialog_data["archive"]:
-        pumps = (
-            await session.scalars(select(Pump).where(func.date(Pump.timestamp) == date))
-        ).all()
-    else:
-        gs = (
-            await session.scalars(
-                select(GasSensor).where(func.date(GasSensor.timestamp) == date)
-            )
-        ).all()
-    # await manager.next()
+    data_map = [("pump", Pump, plot_pumps), ("gs", GasSensor, plot_gs)]
+
+    for key, model, fnc in data_map:
+        if key in manager.dialog_data["archive"]:
+            has_data = await get_and_plot(session, model, date, fnc)
+            if not has_data:
+                await event.answer("Данных нет", show_alert=True)
+                return
+            await manager.next()
+            return

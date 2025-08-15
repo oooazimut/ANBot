@@ -1,7 +1,6 @@
 from pathlib import Path
-from typing import List, Sequence
+from typing import Sequence
 from PIL import Image, ImageDraw, ImageFont
-from matplotlib.pyplot import barh
 
 from config import GS_PROBE, GS_PUMP, PUMPS_IDS, GasRooms
 from db.models import GasSensor, Pump

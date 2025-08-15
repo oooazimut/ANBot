@@ -17,6 +17,7 @@ from db.repo import save_data
 from dialogs.dialogs import start_router, authen_d, main_d
 from dialogs.states import MainSG
 from middlewares import DbSessionMiddleware
+from service.message import morning_message
 
 
 async def ui_error_handler(event: ErrorEvent, dialog_manager: DialogManager):
@@ -41,7 +42,16 @@ async def main():
         trigger="interval",
         seconds=5,
         id="polling",
-        args=[db_pool],
+        args=[db_pool, bot],
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        morning_message,
+        trigger="cron",
+        # day_of_week="mon-fri",
+        hour=9,
+        id="morn_mail",
+        args=[bot, db_pool],
         replace_existing=True,
     )
     scheduler.start()

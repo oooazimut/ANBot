@@ -35,6 +35,12 @@ class GasRooms(StrEnum):
     PROBE = "Пробная"
 
 
+class Alerts(StrEnum):
+    GAS = "gas_alert"
+    TANK = "tank_overflow"
+    BYPASS = "bypass_warning"
+
+
 GS_PUMP = ["5.1", "5.2", "5.4", "5.3"]
 GS_PROBE = ["3.8", "4.1"]
 PUMPS_IDS = ["H-1.1", "H-1.2", "H-3", "H-2.1", "H-2.2"]

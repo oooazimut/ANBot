@@ -69,7 +69,7 @@ main_d = Dialog(
         StaticMedia(path=Format("{path}"), type=ContentType.PHOTO),
         StubScroll(id="gs_rooms_scroll", pages="pages"),
         Group(NumberedPager(scroll="gs_rooms_scroll"), width=8),
-        Button(Const("Архив"), id="to_gas_archive", on_click=to_archive),
+        Button(Const("Архив"), id="to_gs_archive", on_click=to_archive),
         Back(Const("Назад")),
         state=MainSG.gas_sensors,
         getter=getters.gas_rooms_getter,
@@ -84,6 +84,7 @@ main_d = Dialog(
     Window(
         Const("Выбери дату:"),
         CustomCalendar(id="calendar", on_click=on_date),
+        SwitchTo(Const("Гл.меню"), id="to_main_menu", state=MainSG.menu),
         state=MainSG.calendar,
     ),
     Window(
@@ -91,6 +92,8 @@ main_d = Dialog(
         StaticMedia(path=Format("{path}"), type=ContentType.PHOTO),
         StubScroll(id="archive_scroll", pages="pages"),
         Group(NumberedPager(scroll="archive_scroll"), width=8),
+        Back(Const("Назад")),
+        SwitchTo(Const("Гл.меню"), id="to_main_menu", state=MainSG.menu),
         state=MainSG.archive,
         getter=getters.archive_getter,
     ),

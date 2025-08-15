@@ -1,6 +1,7 @@
 import logging
 from typing import Sequence
 
+from aiogram import Bot
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased, sessionmaker
@@ -11,8 +12,8 @@ from service.modbus import poll_registers
 logger = logging.getLogger(__name__)
 
 
-async def save_data(db_pool: sessionmaker):
-    data = await poll_registers()
+async def save_data(db_pool: sessionmaker, bot: Bot):
+    data = await poll_registers(bot, db_pool)
     if not data:
         return
 

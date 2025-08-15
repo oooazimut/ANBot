@@ -2,11 +2,13 @@ import logging
 from datetime import datetime
 from typing import Any, List
 
+from aiogram import Bot
 from pymodbus import ModbusException
 from pymodbus.client import AsyncModbusTcpClient, ModbusBaseClient
+from sqlalchemy.orm import sessionmaker
 
-from config import GS_PROBE, GS_PUMP, PUMPS_IDS, settings
-
+from config import GS_PROBE, GS_PUMP, PUMPS_IDS, Alerts, settings
+from service.message import handle_alerts, send_message
 
 logger = logging.getLogger(__name__)
 
@@ -14,6 +16,9 @@ REG_START = 16384
 REG_LEN = 41
 
 Uzas, Shifters = [], []
+GSensors = [0] * 5
+Tanks = [0] * 3
+Bypasses = [0] * 5
 
 
 def convert_to_bin(num: int, width: int) -> list[int]:
@@ -31,9 +36,10 @@ def words_to_floats(client: ModbusBaseClient, words: list[int]) -> List[float | 
     ]
 
 
-def process_data(client: ModbusBaseClient, data: List):
-    global Uzas, Shifters
+async def process_data(client: ModbusBaseClient, data: List):
+    global Uzas, Shifters, GSensors, Tanks, Bypasses
     ts = datetime.now().replace(microsecond=0)
+    alerts = []
 
     sensors = [
         {
@@ -43,6 +49,10 @@ def process_data(client: ModbusBaseClient, data: List):
         }
         for n, v in zip(GS_PUMP + GS_PROBE, words_to_floats(client, data[:12]))
     ]
+
+    for i in range(len(sensors)):
+        if sensors[i]["value"] > 30 and sensors[i]["value"] != GSensors[i]:
+            alerts.append((Alerts.GAS, sensors[i]))
 
     pumps = [
         {
@@ -62,13 +72,26 @@ def process_data(client: ModbusBaseClient, data: List):
         )
     ]
 
+    tanks = convert_to_bin(data[28], 3)[-1:-4:-1]
+    for i in range(len(tanks)):
+        if tanks[i] and tanks[i] != Tanks[i]:
+            alerts.append((Alerts.TANK, {"num": i + 1}))
+
+    bypasses = convert_to_bin(data[29], 3)
+    for i in range(len(bypasses)):
+        if bypasses[i] and bypasses[i] != Bypasses[i]:
+            alerts.append((Alerts.BYPASS, {"pump": PUMPS_IDS[i]}))
+
     Uzas = convert_to_bin(data[32], 6)
     Shifters = data[35:]
+    GSensors = [s["value"] for s in sensors]
+    Tanks = tanks
+    Bypasses = bypasses
 
-    return {"pumps": pumps, "sensors": sensors}
+    return {"pumps": pumps, "sensors": sensors, "alerts": alerts}
 
 
-async def poll_registers() -> dict | None:
+async def poll_registers(bot: Bot, db_pool: sessionmaker) -> dict | None:
     async with AsyncModbusTcpClient(
         settings.modbus.host,
         port=settings.modbus.port,
@@ -89,7 +112,9 @@ async def poll_registers() -> dict | None:
             if hold_regs.isError():
                 logger.error(f"Чтение регистров завершилось ошибкой: {hold_regs}")
                 return
-            return process_data(client, hold_regs.registers)
+            result = await process_data(client, hold_regs.registers)
+            await handle_alerts(bot, db_pool, result["alerts"])
+            return result
 
         except ModbusException as exc:
             logger.error(f"Ошибка протокола Modbus: {exc}")
