@@ -3,10 +3,12 @@ import logging
 
 from aiogram import Dispatcher, Bot
 from aiogram.client.default import DefaultBotProperties
+from aiogram.filters import ExceptionTypeFilter
 from aiogram.fsm.storage.base import DefaultKeyBuilder
 from aiogram.fsm.storage.redis import RedisStorage
 from aiogram.types import ErrorEvent
 from aiogram_dialog import DialogManager, StartMode, setup_dialogs
+from aiogram_dialog.api.exceptions import OutdatedIntent, UnknownIntent
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
@@ -62,6 +64,10 @@ async def main():
     dp.include_routers(start_router, authen_d, main_d)
     setup_dialogs(dp, media_id_storage=MediaIdStorage())
     dp.update.outer_middleware(DbSessionMiddleware(db_pool))
+
+    dp.errors.register(
+        ui_error_handler, ExceptionTypeFilter(UnknownIntent, OutdatedIntent)
+    )
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
 
