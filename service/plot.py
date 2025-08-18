@@ -30,6 +30,7 @@ def plot_pumps(pumps: Sequence[Pump]):
         # ax.set_xlim(start_of_day, end_of_day)
         plt.legend()
         plt.title(f"Насос: {pump}")
+        plt.tight_layout()
         plt.savefig(Path(f"images/{pump}.png"))
         plt.close()
 
@@ -52,5 +53,6 @@ def plot_gs(gs: Sequence[GasSensor]):
         ax.xaxis.set_major_formatter(date_format)
         plt.legend()
         plt.title(f"Помещение: {room}")
+        plt.tight_layout()
         plt.savefig(Path(f"images/{room}.png"))
         plt.close()
