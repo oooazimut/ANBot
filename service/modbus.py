@@ -18,7 +18,7 @@ REG_LEN = 41
 Uzas, Shifters = [], []
 GSensors = [0] * 5
 Tanks = [0] * 3
-Bypasses = [0] * 5
+Bypasses = [0] * 4
 
 
 def convert_to_bin(num: int, width: int) -> list[int]:
@@ -77,7 +77,7 @@ async def process_data(client: ModbusBaseClient, data: List):
         if tanks[i] and tanks[i] != Tanks[i]:
             alerts.append((Alerts.TANK, {"num": i + 1}))
 
-    bypasses = convert_to_bin(data[29], 3)
+    bypasses = convert_to_bin(data[29], 4)
     for i in range(len(bypasses)):
         if bypasses[i] and bypasses[i] != Bypasses[i]:
             alerts.append((Alerts.BYPASS, {"pump": PUMPS_IDS[i]}))
