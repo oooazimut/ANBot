@@ -1,3 +1,5 @@
+import sqlite3 as sq
+from datetime import date, timedelta
 import logging
 from typing import Sequence
 
@@ -6,6 +8,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased, sessionmaker
 
+from config import settings
 from db.models import GasSensor, Pump
 from service.modbus import poll_registers
 
@@ -56,3 +59,18 @@ async def get_last_pumps(session: AsyncSession) -> Sequence[Pump]:
     )
 
     return (await session.scalars(stmt)).all()
+
+
+def remove_old_data():
+    tables = [GasSensor.__tablename__, Pump.__tablename__]
+    interval = (date.today() - timedelta(days=90)).isoformat()
+
+    with sq.connect(settings.db_name) as conn:
+        for t in tables:
+            conn.execute(
+                f"delete from {t} where DATE(timestamp) < ?",
+                [interval],
+            )
+            print(t, "почищена")
+        conn.commit()
+        print("Все старые данные удалены")

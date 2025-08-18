@@ -7,8 +7,8 @@ from pymodbus import ModbusException
 from pymodbus.client import AsyncModbusTcpClient, ModbusBaseClient
 from sqlalchemy.orm import sessionmaker
 
-from config import GS_PROBE, GS_PUMP, PUMPS_IDS, Alerts, settings
-from service.message import handle_alerts, send_message
+from config import ALL_SENSORS, PUMPS_IDS, Alerts, settings
+from service.message import handle_alerts
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +47,7 @@ async def process_data(client: ModbusBaseClient, data: List):
             "value": v,
             "timestamp": ts,
         }
-        for n, v in zip(GS_PUMP + GS_PROBE, words_to_floats(client, data[:12]))
+        for n, v in zip(ALL_SENSORS, words_to_floats(client, data[:12]))
     ]
 
     for i in range(len(sensors)):

@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
 from config import settings
 from custom.media_storage import MediaIdStorage
-from db.repo import save_data
+from db.repo import remove_old_data, save_data
 from dialogs.dialogs import start_router, authen_d, main_d
 from dialogs.states import MainSG
 from middlewares import DbSessionMiddleware
@@ -50,10 +50,17 @@ async def main():
     scheduler.add_job(
         morning_message,
         trigger="cron",
-        # day_of_week="mon-fri",
+        day_of_week="mon-fri",
         hour=9,
         id="morn_mail",
         args=[bot, db_pool],
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        remove_old_data,
+        trigger="cron",
+        day=1,
+        id="rmv_old",
         replace_existing=True,
     )
     scheduler.start()
@@ -64,9 +71,9 @@ async def main():
     dp.include_routers(start_router, authen_d, main_d)
     setup_dialogs(dp, media_id_storage=MediaIdStorage())
     dp.update.outer_middleware(DbSessionMiddleware(db_pool))
-
     dp.errors.register(
-        ui_error_handler, ExceptionTypeFilter(UnknownIntent, OutdatedIntent)
+        ui_error_handler,
+        ExceptionTypeFilter(UnknownIntent, OutdatedIntent),
     )
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
