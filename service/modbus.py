@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Any, List
 
 from aiogram import Bot
+from dishka.async_container import AsyncContainer
 from pymodbus import ModbusException
 from pymodbus.client import AsyncModbusTcpClient, ModbusBaseClient
 from sqlalchemy.orm import sessionmaker
@@ -91,7 +92,7 @@ async def process_data(client: ModbusBaseClient, data: List):
     return {"pumps": pumps, "sensors": sensors, "alerts": alerts}
 
 
-async def poll_registers(bot: Bot, db_pool: sessionmaker) -> dict | None:
+async def poll_registers(bot: Bot, container: AsyncContainer) -> dict | None:
     async with AsyncModbusTcpClient(
         settings.modbus.host,
         port=settings.modbus.port,
@@ -113,7 +114,7 @@ async def poll_registers(bot: Bot, db_pool: sessionmaker) -> dict | None:
                 logger.error(f"Чтение регистров завершилось ошибкой: {hold_regs}")
                 return
             result = await process_data(client, hold_regs.registers)
-            await handle_alerts(bot, db_pool, result["alerts"])
+            await handle_alerts(bot, container, result["alerts"])
             return result
 
         except ModbusException as exc:

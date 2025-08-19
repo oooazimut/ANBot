@@ -1,11 +1,13 @@
-from pathlib import Path
-import aiosqlite
 import logging
+from pathlib import Path
+from typing import List
 
+import aiosqlite
 from aiologger import Logger
-from config import settings
 from dishka.async_container import AsyncContainer
 
+from config import settings
+from service.modbus import poll_registers
 
 logger = logging.getLogger(__name__)
 
@@ -14,30 +16,35 @@ async def init_db(container: AsyncContainer):
     async with container() as nc:
         conn = await nc.get(aiosqlite.Connection)
         logger = await nc.get(Logger)
-        await logger.info("чекаем базу на наличие...")
-        if not Path(settings.db_name).exists():
-            await logger.info("инициируем бд...")
+        await logger.info("инициируем бд...")
         with open(Path(settings.db_schema), "r", encoding="utf-8") as f:
             await conn.executescript(f.read())
         await conn.commit()
         await logger.info("бд инициирована")
 
 
-# async def save_data(db_pool: sessionmaker, bot: Bot):
-#     data = await poll_registers(bot, db_pool)
-#     if not data:
-#         return
+async def get_userids(container: AsyncContainer) -> List[int]:
+    async with container() as nc:
+        conn = await nc.get(aiosqlite.Connection)
+        cursor = await conn.execute("SELECT id FROM users")
+        return [i["id"] for i in await cursor.fetchall()]
 
-#     async with db_pool() as session:
-#         try:
-#             for pump in data["pumps"]:
-#                 session.add(Pump(**pump))
-#             for sensor in data["sensors"]:
-#                 session.add(GasSensor(**sensor))
-#             await session.commit()
-#         except Exception as e:
-#             await session.rollback()
-#             logger.error(f"Ошибка сохранения данных: {e}")
+
+async def save_data(container: AsyncContainer, bot: Bot):
+    data = await poll_registers(bot, container)
+    if not data:
+        return
+
+    async with db_pool() as session:
+        try:
+            for pump in data["pumps"]:
+                session.add(Pump(**pump))
+            for sensor in data["sensors"]:
+                session.add(GasSensor(**sensor))
+            await session.commit()
+        except Exception as e:
+            await session.rollback()
+            logger.error(f"Ошибка сохранения данных: {e}")
 
 
 # async def get_last_gassensors(session: AsyncSession) -> Sequence[GasSensor]:

@@ -1,11 +1,10 @@
 import asyncio
-import sys
 
 from dishka.async_container import make_async_container
 
+from config import settings
 from db.repo import init_db
 from providers import AioLoggerProvider, DatabaseProvider
-from config import settings
 
 
 async def main():
@@ -14,11 +13,6 @@ async def main():
         AioLoggerProvider(),
     )
     await init_db(container)
-    print("all_good")
-    # try:
-    #     pass
-    # finally:
-    #     await container.close()
 
 
 if __name__ == "__main__":
