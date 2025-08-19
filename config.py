@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     bot_token: SecretStr
     passwd: SecretStr
     db_name: str
+    db_schema: str
     modbus: ModbusSettings
 
     @property
