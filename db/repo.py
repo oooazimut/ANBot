@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased, sessionmaker
 
 from config import settings
-from db.models import GasSensor, Pump
+from db.models import GasSensor, Pump, User
 from service.modbus import poll_registers
 
 logger = logging.getLogger(__name__)
@@ -74,3 +74,7 @@ def remove_old_data():
             print(t, "почищена")
         conn.commit()
         print("Все старые данные удалены")
+
+
+async def get_all_userIDs(session: AsyncSession):
+    return (await session.scalars(select(User.id))).all()

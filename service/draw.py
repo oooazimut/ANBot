@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Sequence
+
 from PIL import Image, ImageDraw, ImageFont
 
 from config import GS_PROBE, GS_PUMP, PUMPS_IDS, GasRooms
@@ -27,7 +28,7 @@ def draw_gassensors(sensors: Sequence[GasSensor]):
             if sensor.name in POINTS[room]:
                 draw.text(
                     POINTS[room][sensor.name],
-                    f"{sensor.name}:   {round(sensor.value, 1)}%",
+                    f"{sensor.name}:   {sensor.value if sensor.value > (-10) else 'N/A'}%",
                     font=font,
                     fill="black",
                 )
@@ -71,12 +72,23 @@ def draw_uzas_and_pumps(output: str, pumps: Sequence[Pump]):
         )
         draw.text((x + 80, y - 30), PUMPS_IDS[i], font=pump_font)
         draw.text(
-            (x + 60, y + 100), f"{pumps[i].pressure} бар", fill="black", font=val_font
+            (x + 60, y + 100),
+            f"{pumps[i].pressure if pumps[i].pressure > -10 else 'N/A'} бар",
+            fill="black",
+            font=val_font,
         )
         draw.text(
-            (x + 60, y + 190), f"{pumps[i].temperature} °C", fill="black", font=val_font
+            (x + 60, y + 190),
+            f"{pumps[i].temperature if pumps[i].temperature > -30 else 'N/A'} °C",
+            fill="black",
+            font=val_font,
         )
-        draw.text((x + 60, y + 280), f"{pumps[i].work} ч.", fill="black", font=val_font)
+        draw.text(
+            (x + 60, y + 280),
+            f"{pumps[i].work if pumps[i].work > -1 else 'N/A'} ч.",
+            fill="black",
+            font=val_font,
+        )
         x += 300
 
     bg_img.save(output)

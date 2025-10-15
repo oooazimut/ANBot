@@ -8,7 +8,6 @@ from pymodbus.client import AsyncModbusTcpClient, ModbusBaseClient
 from sqlalchemy.orm import sessionmaker
 
 from config import ALL_SENSORS, PUMPS_IDS, Alerts, settings
-from service.message import handle_alerts
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +18,7 @@ Uzas, Shifters = [], []
 GSensors = [0] * 5
 Tanks = [0] * 3
 Bypasses = [0] * 4
+isConnected = False
 
 
 def convert_to_bin(num: int, width: int) -> list[int]:
@@ -44,7 +44,7 @@ async def process_data(client: ModbusBaseClient, data: List):
     sensors = [
         {
             "name": n,
-            "value": v,
+            "value": round(v, 1),
             "timestamp": ts,
         }
         for n, v in zip(ALL_SENSORS, words_to_floats(client, data[:12]))
@@ -92,6 +92,9 @@ async def process_data(client: ModbusBaseClient, data: List):
 
 
 async def poll_registers(bot: Bot, db_pool: sessionmaker) -> dict | None:
+    global isConnected
+    from service.message import handle_alerts
+
     async with AsyncModbusTcpClient(
         settings.modbus.host,
         port=settings.modbus.port,
@@ -100,6 +103,7 @@ async def poll_registers(bot: Bot, db_pool: sessionmaker) -> dict | None:
         reconnect_delay=0.5,
         reconnect_delay_max=0.5,
     ) as client:
+        isConnected = client.connected
         if not client.connected:
             logger.error("Нет соединения с ПР!")
             return
