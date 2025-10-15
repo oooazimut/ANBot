@@ -29,7 +29,7 @@ async def ui_error_handler(event: ErrorEvent, dialog_manager: DialogManager):
 
 async def main():
     logging.basicConfig(
-        level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s"
+        level=logging.WARNING, format="%(asctime)s %(levelname)s %(message)s"
     )
     logging.getLogger("apscheduler").setLevel(logging.WARNING)
     engine = create_async_engine(settings.sqlite_async_dsn, echo=False)

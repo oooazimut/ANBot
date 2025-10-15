@@ -52,7 +52,7 @@ def draw_uzas_and_pumps(output: str, pumps: Sequence[Pump]):
         draw.rounded_rectangle(
             (x, y, x + 200, y + 90),
             radius=10,
-            fill="green" if cond else "red",
+            fill="green" if cond else "grey",
             outline="black",
             width=3,
         )
